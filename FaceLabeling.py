@@ -8,13 +8,15 @@ import csv
 from skimage.transform import resize
 
 def getRectangle(faceDictionary):
-    print("getRectangle",faceDictionary)
-    rect = faceDictionary['faceRectangle']
-    left = rect['left']
-    top = rect['top']
-    bottom = left + rect['height']
-    right = top + rect['width']
-    return (left, top, bottom, right)
+    try: 
+        rect = faceDictionary['faceRectangle']
+        left = rect['left']
+        top = rect['top']
+        bottom = left + rect['height']
+        right = top + rect['width']
+        return (left, top, bottom, right)
+    except:
+        return False
 
 with open('ffhq-dataset-v2.json') as json_file:
     pic_infos = json.load(json_file)
@@ -41,8 +43,10 @@ print("reached")
 #csvFile_header.close()
 
 
-with open('labels.csv', 'a') as csvFile:   
-    for i in range(0,20): 
+
+for i in range(22308,30000): 
+    print("seen")
+    try:
         pic_url = pic_infos[str(i)]["image"]["file_url"]
 
         response = requests.post(face_api_url, params=params, headers=headers, json={"url": pic_url})
@@ -54,11 +58,13 @@ with open('labels.csv', 'a') as csvFile:
 
         for j, val in enumerate(face_info):
             rect_coor = getRectangle(val)
+            if(rect_coor == False):
+                continue
             cropped_img = img.crop(rect_coor)
 
             cropped_img=cropped_img.resize((64, 64), Image.ANTIALIAS)
-            cropped_img_name = str(i) + "_" + str(j)
-            save_img = cropped_img.save("./cropped_pics/"+cropped_img_name+".jpg")
+            #cropped_img=cropped_img.resize((224, 224), Image.ANTIALIAS)
+
             
             emotion_pred = [val['faceAttributes']["emotion"]['anger'],
                 val['faceAttributes']["emotion"]['happiness'],
@@ -72,16 +78,41 @@ with open('labels.csv', 'a') as csvFile:
             for e_i, emotion_val in enumerate(emotion_pred):
                 if(emotion_val > emotion_pred[max_val]):
                     max_val = e_i
-
+            """
             label = {
                 'id': cropped_img_name,
                 'label': max_val
-            }            
-            wr = csv.DictWriter(csvFile, fieldnames=('id', 'label'), lineterminator = '\n')
-            wr.writerow(label)
+            }  
+            """          
+
+            if(max_val == 0):
+                emotion="Angry"
+            elif(max_val == 1):
+                emotion="Happy"  
+                continue      
+            elif(max_val == 2):
+                emotion="Neutral"
+            elif(max_val == 3):
+                emotion="Sad"
+            elif(max_val == 4):
+                emotion="Surprised"
+
+            cropped_img_name = str(i) + "_" + str(j) + "_" + emotion
+            save_img = cropped_img.save("./cropped_pics/"+emotion+"/"+cropped_img_name+".jpg")
+            #save_img = cropped_img.save("./cropped_pics_224/"+emotion+"/"+cropped_img_name+".jpg")
+
+
+            #with open('labels.csv', 'a') as csvFile:   
+            #    wr = csv.DictWriter(csvFile, fieldnames=('id', 'label'), lineterminator = '\n')
+            #    wr.writerow(label)
+    except Exception as e:
+        print("except ", e)
+        continue
+    
+    print(i)
 
 
             
-csvFile.close()
+#csvFile.close()
 
 print("finished running")
