@@ -44,8 +44,7 @@ print("reached")
 
 
 
-for i in range(22308,30000): 
-    print("seen")
+for i in range(11039,30000): 
     try:
         pic_url = pic_infos[str(i)]["image"]["file_url"]
 
@@ -62,8 +61,8 @@ for i in range(22308,30000):
                 continue
             cropped_img = img.crop(rect_coor)
 
-            cropped_img=cropped_img.resize((64, 64), Image.ANTIALIAS)
-            #cropped_img=cropped_img.resize((224, 224), Image.ANTIALIAS)
+            #cropped_img=cropped_img.resize((64, 64), Image.ANTIALIAS)
+            cropped_img=cropped_img.resize((224, 224), Image.ANTIALIAS)
 
             
             emotion_pred = [val['faceAttributes']["emotion"]['anger'],
@@ -89,7 +88,7 @@ for i in range(22308,30000):
                 emotion="Angry"
             elif(max_val == 1):
                 emotion="Happy"  
-                continue      
+                      
             elif(max_val == 2):
                 emotion="Neutral"
             elif(max_val == 3):
@@ -98,8 +97,8 @@ for i in range(22308,30000):
                 emotion="Surprised"
 
             cropped_img_name = str(i) + "_" + str(j) + "_" + emotion
-            save_img = cropped_img.save("./cropped_pics/"+emotion+"/"+cropped_img_name+".jpg")
-            #save_img = cropped_img.save("./cropped_pics_224/"+emotion+"/"+cropped_img_name+".jpg")
+            #save_img = cropped_img.save("./cropped_pics/"+emotion+"/"+cropped_img_name+".jpg")
+            save_img = cropped_img.save("./cropped_pics_224/"+emotion+"/"+cropped_img_name+".jpg")
 
 
             #with open('labels.csv', 'a') as csvFile:   
