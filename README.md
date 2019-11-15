@@ -15,8 +15,11 @@ To train the models in this project, two datasets are used: Flickr Faces HQ Data
 Files in this Repo: 
 
 FaceAPIConfig.py: contains configurations for Azure Face API, such as subscription_key and face_api_url
-FaceLabeling.py: contains the code used to process images from the Flickr Faces HQ Dataset
-Face_Obtain.py: contains code used to process images from the AffectNet Dataset
+
+Face_FlickrFacesHQ.py: contains the code used to process images from the Flickr Faces HQ Dataset
+
+Face_AffectNet.py: contains code used to process images from the AffectNet Dataset
+
 Models.py: contains the initial ECNN and baseline model archetectures
 
 To Come:
