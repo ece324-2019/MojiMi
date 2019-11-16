@@ -4,7 +4,8 @@ import os
 import FaceAPIConfig as config
 import json
 from io import BytesIO
-import csv 
+import matplotlib.pyplot as plt
+import csv
 from skimage.transform import resize
 
 def getRectangle(faceDictionary):
@@ -71,6 +72,7 @@ def propcessFlickr():
 
 def getCropImgAndLabel(face_info, img,i):
     for j, val in enumerate(face_info):
+
         rect_coor = getRectangle(val)
         if (rect_coor == False):
             continue
@@ -78,6 +80,9 @@ def getCropImgAndLabel(face_info, img,i):
 
         cropped_img_64 = cropped_img.resize((64, 64), Image.ANTIALIAS)
         cropped_img_224 =cropped_img.resize((224, 224), Image.ANTIALIAS)
+        plt.figure(i)
+
+        #cropped_img_64.show(title = 'Cropped and resized Image_{} after passing into Microsoft Azure'.format(i))
 
         emotion_pred = [val['faceAttributes']["emotion"]['anger'],
                         val['faceAttributes']["emotion"]['happiness'],
@@ -97,7 +102,7 @@ def getCropImgAndLabel(face_info, img,i):
             'label': max_val
         }  
         """
-
+        print(j)
         if (max_val == 0):
             emotion = "Angry"
         elif (max_val == 1):
@@ -112,17 +117,18 @@ def getCropImgAndLabel(face_info, img,i):
 
         cropped_img_64_name = str(i) + "_" + str(j) + "_" + emotion
         cropped_img_224_name = str(i) + "_" + str(j) + "_" + emotion
+        print(j)
+        print(cropped_img_64_name)
 
         # Chnaging folder so knows which one is processed where
         save_img = cropped_img_64.save(os.path.join(os.getcwd(), "cropped_pics_kh_64/") + emotion + "/" + cropped_img_64_name + ".jpg")
         save_img = cropped_img_224.save(os.path.join(os.getcwd(), "cropped_pics_kh_224/") + emotion + "/" + cropped_img_224_name + ".jpg")
+        im = Image.open(os.path.join(os.getcwd(), "cropped_pics_kh_64/") + emotion + "/" + cropped_img_64_name + ".jpg")
+        im.show()
 
         # with open('labels.csv', 'a') as csvFile:
         #    wr = csv.DictWriter(csvFile, fieldnames=('id', 'label'), lineterminator = '\n')
         #    wr.writerow(label)
-
-
-
 
 def processKDEF_ext():
     headers = {
@@ -133,19 +139,30 @@ def processKDEF_ext():
     i = 0
     for (root,dirs,files) in os.walk('KDEF'):
         print(root)
+        i +=1
+        root = 'KDEF/AF01'
         for file in files:
+            file = '1000366164.jpg'
             if file[4:6] == 'HA' or file[4:6] == 'NE':
                 continue
 
             imgpath = os.path.join(root, file)
             img_data = open(imgpath, 'rb')
             img = Image.open(imgpath)
+
+            img.show()
             response = requests.post(face_api_url, params = params, headers=headers, data = img_data)
             face_info = response.json()
+            print(face_info)
             getCropImgAndLabel(face_info, img, 'KDEF_{i}'.format(i=i))
-            i += 1
+            #i += 1
+            break
+        if i ==2:
+            break
 
-# processKDEF_ext()
+
+
+processKDEF_ext()
 
 def processOriginalPic_ext():
     headers = {

@@ -29,9 +29,11 @@ It will then augment the existed data inplace to 8x the number of images.
 Note, everytime, ori_cropped_pics will only be created if no previous ori_cropped_pics exist. 
 So if dataset is renewed and want to augment again, delete ori_cropped_pics first then call: dataAug('cropped_pics') 
 '''
-
+fileOrigin = os.getcwd() # For running in local computer
+#fileOrigin = os.path.join(os.getcwd(), 'gdrive/My Drive/Colab Notebooks/Mojimi') # For running on colab
 def getData(dataset_path):
-    dataset_path = os.path.join(os.getcwd(), dataset_path)
+
+    dataset_path = os.path.join(fileOrigin, dataset_path)
 
     angry_dataset = os.path.join(dataset_path, 'Angry')
     happy_dataset = os.path.join(dataset_path, 'Happy')
@@ -42,6 +44,7 @@ def getData(dataset_path):
     # Plot distribution
     angry_imgs = os.listdir(angry_dataset)
     happy_imgs = os.listdir(happy_dataset)
+    print(happy_imgs)
     neutral_imgs = os.listdir(neutral_dataset)
     sad_imgs = os.listdir(sad_dataset)
     surprised_imgs = os.listdir(surprised_dataset)
@@ -50,7 +53,7 @@ def getData(dataset_path):
     return out
 
 (angry_dataset, happy_dataset, neutral_dataset, sad_dataset, surprised_dataset, angry_imgs,
- happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('cropped_pics')
+ happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('cropped_pics')# changed
 
 def plotPie():
     num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs), len(surprised_imgs)]
@@ -58,15 +61,24 @@ def plotPie():
     activities = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprised']
 
     plt.pie(num_of_imgs, labels=activities, startangle=90, autopct='%.1f%%')
+    plt.title('Number of images in each category:\n Angry: {Angry} Happy: {Happy} Neutral: {Neutral} Sad: '
+              '{Sad} Surprised:{Surprised}'.format(Angry=num_of_imgs[0], Happy=num_of_imgs[1],
+                                                   Neutral=num_of_imgs[2], Sad=num_of_imgs[3],
+                                                   Surprised=num_of_imgs[4]))
+
     plt.show()
 
-#plotPie() # [7612, 10633, 7412, 7736, 7772]
+plotPie() # [7612, 10633, 7412, 7736, 7772]
 
 def horizontalFlip(rootpath, emo, dataset):
+    i = 0
     for img in os.listdir(dataset):
+        if i == 0:
+            i+=1
+            continue
         filename, ext = os.path.splitext(img)
 
-        rootpath = os.path.join(os.getcwd(), rootpath)
+        rootpath = os.path.join(fileOrigin, rootpath)
         img = os.path.join(rootpath, img)
 
         # Read PIL images
@@ -96,10 +108,14 @@ im = Image.fromarray(arr)
 '''
 
 def randomNoise(rootpath, emo, dataset):
+    i=0
     for img in os.listdir(dataset):
+        if i == 0:
+            i+=1
+            continue
         filename, ext = os.path.splitext(img)
 
-        rootpath = os.path.join(os.getcwd(), rootpath)
+        rootpath = os.path.join(fileOrigin, rootpath)
         img = os.path.join(rootpath, img)
 
         # Convert Pil to numpy arrary
@@ -123,10 +139,13 @@ def randomNoise(rootpath, emo, dataset):
 def contrastBrightness(rootpath, emo, dataset, alpha, beta):
     i = 0
     for img in os.listdir(dataset):
+        if i == 0:
+            i+=1
+            continue
         i +=1
         filename, ext = os.path.splitext(img)
 
-        rootpath = os.path.join(os.getcwd(), rootpath)
+        rootpath = os.path.join(fileOrigin, rootpath)
         img = os.path.join(rootpath, img)
 
         # Convert Pil to numpy arrary
@@ -154,36 +173,34 @@ def contrastBrightness(rootpath, emo, dataset, alpha, beta):
                                                              filename = filename, ext=ext))
         '''
         im.save('{root}/{filename}_contrast{ext}'.format(root=rootpath,filename=filename, ext=ext))
-
         im.show()
-
-        #if i == 4:
-
-        #    break
 
 def dataAug(rootFilePath):
     '''Copy the original cropped image directory to the other directory and
     do data augmentation on the original directory to update numbers of images.
     '''
-    copy_imgFolder_path = '{root}/ori_{imgDir}'.format(root= os.getcwd(), imgDir = rootFilePath)
+    copy_imgFolder_path = '{root}/ori_{imgDir}'.format(root= fileOrigin, imgDir = rootFilePath)
     # Only copy at the very beginning
     if not os.path.exists(copy_imgFolder_path):
         os.mkdir(copy_imgFolder_path)
-        copy_tree('{root}/{imgDir}'.format(root= os.getcwd(), imgDir = rootFilePath), copy_imgFolder_path)
+        copy_tree('{root}/{imgDir}'.format(root= fileOrigin, imgDir = rootFilePath), copy_imgFolder_path)
 
-    # horizontalFlip('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
+    #horizontalFlip('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
     # horizontalFlip('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
     # horizontalFlip('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset)
+    #horizontalFlip('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset)
 
     # randomNoise('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
     # randomNoise('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
     # randomNoise('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset)
+    #randomNoise('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset)
 
-    # alpha, beta = 1.2, 0.5
+    alpha, beta = 1.2, 0.5
 
     # contrastBrightness('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset,alpha, beta)
     # contrastBrightness('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset, alpha, beta)
     # contrastBrightness('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset, alpha, beta)
+    #contrastBrightness('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset,  alpha, beta)
 
 '''
 This file is mainly used to create suitable inputs based on dataset. 
@@ -198,10 +215,6 @@ def getDataLoader():
     num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs), len(surprised_imgs)]
     min_num_img = min(num_of_imgs)
     print(min_num_img)
-
-    # end_index = [num_of_imgs[0]-1, num_of_imgs[0] + num_of_imgs[1]-1, num_of_imgs[0] + num_of_imgs[1] + num_of_imgs[2] -1,
-    #             sum(num_of_imgs) - num_of_imgs[-1]-1, sum(num_of_imgs)-1]
-    # begin_idx = [0, end_index[0]+1, end_index[1]+1, end_index[2]+1, end_index[3]+1,]
 
     # begin_idx is the index of which index will the last one belong to this category
     begin_idx = [0, num_of_imgs[0], num_of_imgs[0] + num_of_imgs[1], num_of_imgs[0] + num_of_imgs[1] + num_of_imgs[2],
@@ -233,9 +246,10 @@ def getDataLoader():
         test_indice += sub_idx[int((train_split + val_split)*min_num_img)::]
         overfit_indice += sub_idx[0:overfit_split]
         indice += sub_idx
+
     #print(len(train_indice))
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0, 0, 0), (1, 1, 1))])
-    all_input_data = torchvision.datasets.ImageFolder(root=os.path.join(os.getcwd(), 'cropped_pics'), transform=transform)
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    all_input_data = torchvision.datasets.ImageFolder(root=os.path.join(fileOrigin, 'cropped_pics'), transform=transform)
     #all_data_loader = torch.utils.data.DataLoader(all_input_data, batch_size=4, shuffle=True, num_workers=2)
 
     balanced_all_input_data = torch.utils.data.Subset(all_input_data, indice)
@@ -246,9 +260,40 @@ def getDataLoader():
     #balanced_all_data_loader = torch.utils.data.DataLoader(balanced_all_input_data, batch_size=4, shuffle=True, num_workers=2)
     return balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data
 
+# Aid function to plot normalized images
+def getDataLoader_test():
+    seed = 1
+    train_split, val_split, test_split, overfit_split = 0.7, 0.2, 0.1, 10
+    (_, _, _, _, _, angry_imgs, happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('cropped_pics_kh_64')
+    num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs), len(surprised_imgs)]
+    min_num_img = min(num_of_imgs)
+    print(min_num_img)
+
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    all_input_data = torchvision.datasets.ImageFolder(root=os.path.join(fileOrigin, 'cropped_pics_kh_64'), transform=transform)
+    all_data_loader = torch.utils.data.DataLoader(all_input_data, batch_size=1, shuffle=True, num_workers=2)
+
+    k = 0
+    for images, labels in all_data_loader:
+        # since batch_size = 1, there is only 1 image in `images`
+        image = images[0]
+        # place the colour channel at the end, instead of at the beginning
+        img = np.transpose(image, [1, 2, 0])
+        # normalize pixel intensity values to [0, 1]
+        img = img / 2 + 0.5
+
+        plt.axis('off')
+        plt.imshow(img)
+        plt.show()
+        k += 1
+    return
+#getDataLoader_test()
+
 # label is [0][1]
 #dataAug('cropped_pics')
-balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data = getDataLoader()
+
+#balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data = getDataLoader()
+
 #train_data_loader = torch.utils.data.DataLoader(train_input_data, batch_size=4, shuffle=True, num_workers=2)
 
 #print(train_data_loader)
