@@ -82,6 +82,8 @@ for name in cropped_names:
 #now need to convert the array of emotions int to emotion values and get emoji
 
 #len(emotions) = len(cropped_names) = len(rect_coor_arr)
+original_pic = Image.open(pic_path)
+copy_og = original_pic.copy()
 for i in range(len(emotions)):
     emoji = None
     if(i == 0):
@@ -96,3 +98,9 @@ for i in range(len(emotions)):
         emoji = "Surprised_Emoji.jpg"
     
     emoji_pic = Image.open("./emojis/"+emoji)
+    pic_path = './images/'+args.image
+    
+    copy_og.paste(emoji_pic,  (rect_coor_arr[i][0], rect_coor_arr[i][1]))
+
+copy_og.save('./emoji_pasted/emoji_'+args.image, quality=95)
+
