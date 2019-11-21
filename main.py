@@ -1,7 +1,7 @@
 #main.py will be the main function of the program in which functions will be run and called from
 
 #config Azure API
-import FaceAPIConfig as config
+import data_processing.FaceAPIConfig as config
 subscription_key, face_api_url = config.config()
 
 headers = {
@@ -98,6 +98,8 @@ for i in range(len(emotions)):
         emoji = "Surprised_Emoji.jpg"
     
     emoji_pic = Image.open("./emojis/"+emoji)
+    emoji_pic = emoji_pic.resize((rect_coor_arr[i][3]-rect_coor_arr[i][0], rect_coor_arr[i][2]-rect_coor_arr[i][1]), Image.ANTIALIAS)
+    
     pic_path = './images/'+args.image
     
     copy_og.paste(emoji_pic,  (rect_coor_arr[i][0], rect_coor_arr[i][1]))

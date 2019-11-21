@@ -92,6 +92,7 @@ def train(model, train_dataset, val_dataset, lr, batch_size, num_epoch, save):
         print('Val_acc:', val_acc)
 
     #torch.save(model.state_dict(), os.path.join(os.getcwd(), 'baseline_1.pt'))
+    # If to save in certain direcotry, 'models/baseline_1.pt' as save
     torch.save(model.state_dict(), os.path.join(os.getcwd(), save))
     end_time = time.time()
     time_used = end_time - start_time
