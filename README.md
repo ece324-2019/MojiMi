@@ -12,6 +12,19 @@ To train the models in this project, two datasets are used: Flickr Faces HQ Data
 - Flickr High Quality Dataset used: https://github.com/NVlabs/ffhq-dataset
 - AffectNet: http://mohammadmahoor.com/affectnet/
 
+
+
+While the general information is as how the master branch introduced, code for process images from the Flickr Faces HQ Dataset and AffectNet Dataset are combined into file FaceLabelling.py
+
+After obtaining images, they will be preprocessed by running getDataLoader() in the InputManager.py. This function will perform data augmentation and normalize and transform the image into desired tensor format to be compatible with ECNN -- our neuron network. Current version ECNN model can be found in CNNModel.py. 
+
+Training code is in the main.py, the model can be trained and saved to location: savepath by running code as shown below:
+
+Balanced_all_dataset, train_dataset, val_dataset, test_dataset, overfit_dataset = inputManager.getDataLoader()
+model = Model.ECNN()
+train(model, train_dataset, val_dataset, lr = lr, batch_size = batch_size, num_epoch= num_epoch, save = savepath)
+
+
 Files in this Repo: 
 
 FaceAPIConfig.py: contains configurations for Azure Face API, such as subscription_key and face_api_url

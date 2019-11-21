@@ -103,4 +103,3 @@ for i in range(len(emotions)):
     copy_og.paste(emoji_pic,  (rect_coor_arr[i][0], rect_coor_arr[i][1]))
 
 copy_og.save('./emoji_pasted/emoji_'+args.image, quality=95)
-
