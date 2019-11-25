@@ -34,7 +34,7 @@ def getRectangle(faceDictionary):
         top = rect['top']
         right = left + rect['height']
         bottom = top + rect['width']
-        return (left, top, bottom, right)
+        return (left, top, right,bottom)
     except:
         return False
 
@@ -73,11 +73,12 @@ for j, val in enumerate(face_info):
     if (rect_coor == False):
         print("face not detected")
         continue
+
     cropped_img = img.crop(rect_coor)
 
     cropped_img=cropped_img.resize((args.dim, args.dim), Image.ANTIALIAS)
 
-    cropped_img_name = "cropped_"+args.image+".jpg"
+    cropped_img_name = "cropped_"+args.image+"_"+str(j)+".jpg"
     cropped_names.append(cropped_img_name)
     save_img = cropped_img.save("./images/cropped_pics/"+cropped_img_name)
 
@@ -88,18 +89,17 @@ for j, val in enumerate(face_info):
 emotions = []
 print("cropped_names", cropped_names)
 for name in cropped_names:
+    
     #name is a string of cropped img stored
     cropped_img = Image.open("./images/cropped_pics/"+name)
-    transform = transforms.Compose([transforms.ToTensor()])#, #transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     cropped_img_tensor = transform(cropped_img)
-
 
     toPil = transforms.ToPILImage()
     cropped_img_tensor_pic = toPil(cropped_img_tensor)
     #cropped_img_tensor_pic.show()
 
-    plt.imshow(cropped_img_tensor_pic)
-    plt.show()
+
     cropped_img_tensor = cropped_img_tensor.unsqueeze(0)
     ECNN = Model.ECNN_final()
     ECNN.load_state_dict(torch.load('./models/'+args.NN+".pt"))
@@ -129,12 +129,10 @@ for i in range(len(emotions)):
     elif(ind==4):
         emoji = "Surprised_Emoji.jpg"
     emoji_pic = Image.open("./emojis/"+emoji)
-    emoji_pic = emoji_pic.resize((rect_coor_arr[i][3]-rect_coor_arr[i][0], rect_coor_arr[i][2]-rect_coor_arr[i][1]), Image.ANTIALIAS)
+    #emoji_pic = emoji_pic.resize((rect_coor_arr[i][3]-rect_coor_arr[i][0], rect_coor_arr[i][2]-rect_coor_arr[i][1]), Image.ANTIALIAS)
+    emoji_pic = emoji_pic.resize((rect_coor_arr[i][2]-rect_coor_arr[i][0], rect_coor_arr[i][3]-rect_coor_arr[i][1]), Image.ANTIALIAS)
   
     copy_og.paste(emoji_pic,  (rect_coor_arr[i][0], rect_coor_arr[i][1]))
 
-emoji_pic = emoji_pic.resize((rect_coor_arr[0][3]-rect_coor_arr[0][0], rect_coor_arr[0][2]-rect_coor_arr[0][1]), Image.ANTIALIAS)
-
-copy_og.paste(emoji_pic,  (rect_coor_arr[0][0], rect_coor_arr[0][1]))
 
 copy_og.save('./images/emoji_pasted/emoji_'+args.image+".jpg", quality=95)
