@@ -235,9 +235,11 @@ The input will be format into tensors that can be shaped and batched
 
 def getDataLoader():
     seed = 1
+
     train_split, val_split, test_split, overfit_split = 0.7, 0.2, 0.1, 30
     '''
     (_, _, _, _, _, angry_imgs, happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData(dataset_used)
+
     num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs), len(surprised_imgs)]
     min_num_img = min(num_of_imgs)
     print(min_num_img)
@@ -293,6 +295,7 @@ def getDataLoader():
 
     # print(len(train_indice))
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
     all_input_data = torchvision.datasets.ImageFolder(root=os.path.join(fileOrigin, dataset_used),
                                                       transform=transform)
     # all_data_loader = torch.utils.data.DataLoader(all_input_data, batch_size=4, shuffle=True, num_workers=2)
@@ -333,7 +336,7 @@ def getDataLoader_test():
         plt.show()
         k += 1
     return
-# getDataLoader_test()
+
 
 # label is [0][1]
 # dataAug(dataset_used)
@@ -372,7 +375,10 @@ for img, label in new_overfit_data_loader:
 # train_data_loader = torch.utils.data.DataLoader(train_input_data, batch_size=4, shuffle=True, num_workers=2)
 '''
 
-# print(train_data_loader)
-# for i,(data,label) in enumerate(overfit_input_data):
-# print(label)
-# print(i)
+
+print(train_data_loader)
+for i,(data,label) in enumerate(overfit_input_data):
+    print(label)
+    print(i)
+
+"""
