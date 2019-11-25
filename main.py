@@ -2,9 +2,21 @@
 
 #config Azure API
 import data_processing.FaceAPIConfig as config
+import CNNModel_e as Model
+import argparse
+from PIL import Image
+import json
+import requests
+import urllib 
+import torchvision.transforms as transforms
+import torch
+import torch.nn as nn
+import numpy as np
+import matplotlib.pyplot as plt
 subscription_key, face_api_url = config.config()
 
 headers = {
+    'Content-Type':'application/octet-stream',
     'Ocp-Apim-Subscription-Key': subscription_key
 }
 
@@ -20,35 +32,38 @@ def getRectangle(faceDictionary):
         rect = faceDictionary['faceRectangle']
         left = rect['left']
         top = rect['top']
-        bottom = left + rect['height']
-        right = top + rect['width']
+        right = left + rect['height']
+        bottom = top + rect['width']
         return (left, top, bottom, right)
     except:
         return False
 
-#several different functions
-
-#need args parse to be able to parse and see the file name it should calll for
-
-import argparse
-from PIL import Image
-import json
-import requests
-
 parser = argparse.ArgumentParser()
 parser.add_argument('-image', type=str, default="")
+parser.add_argument('-dim', type=int, default=64)
+parser.add_argument('-NN', type=str, default="ECNN")
+
 args = parser.parse_args()
 
-pic_path = './images/'+args.image
+pic_path = "./images/"+args.image+".jpg"
 
 #get uploaded image 
-img = Image.open(pic_path)
 
+#pic_url = args.picURL#"https://cdn.psychologytoday.com/sites/default/files/styles/article-inline-half-caption/public/field_blog_entry_images/2018-09/shutterstock_648907024.jpg?itok=0hb44OrI"
+#pic_resource = urllib.request.urlretrieve(pic_url, pic_path)
+#img = Image.open(pic_path)
 #then need to use Axure to get coordinates
 #need to figure out what to do with url/file, how to send fiel to axure API
 
-response = requests.post(face_api_url, params=params, headers=headers, json={"url": img})
+pic_file = open('./images/'+args.image+".jpg", 'rb')
+img = Image.open('./images/'+args.image+".jpg")
+
+response = requests.post(face_api_url, params=params, headers=headers, data = pic_file)
+
+#response = requests.post(face_api_url, params=params, headers=headers, json={"url": pic_url})
 face_info = response.json() #get face info in dictionary format
+
+print("face_info", face_info)
 
 cropped_names = []
 rect_coor_arr = []
@@ -57,51 +72,69 @@ for j, val in enumerate(face_info):
     rect_coor_arr.append(rect_coor)
     if (rect_coor == False):
         print("face not detected")
-        
+        continue
     cropped_img = img.crop(rect_coor)
 
-    cropped_img=cropped_img.resize((64, 64), Image.ANTIALIAS)
+    cropped_img=cropped_img.resize((args.dim, args.dim), Image.ANTIALIAS)
 
-    cropped_img_name = "cropped_"+args.image
+    cropped_img_name = "cropped_"+args.image+".jpg"
     cropped_names.append(cropped_img_name)
-    save_img = cropped_img.save("./cropped_pics_testing/"+cropped_img_name)
+    save_img = cropped_img.save("./images/cropped_pics/"+cropped_img_name)
 
 #cropped_names array now contains array of names of cropped files
 #the format is of form: cropped_filename.jpg
 
 
 emotions = []
+print("cropped_names", cropped_names)
 for name in cropped_names:
     #name is a string of cropped img stored
-    cropped_img = img.open(name)
-    #call ECNN to get prediction
-    #note: will need to change cropped_img to potentially change to string or img
-    #emotions.append(ECNN(cropped_img))
+    cropped_img = Image.open("./images/cropped_pics/"+name)
+    transform = transforms.Compose([transforms.ToTensor()])#, #transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    cropped_img_tensor = transform(cropped_img)
 
+
+    toPil = transforms.ToPILImage()
+    cropped_img_tensor_pic = toPil(cropped_img_tensor)
+    #cropped_img_tensor_pic.show()
+
+    plt.imshow(cropped_img_tensor_pic)
+    plt.show()
+    cropped_img_tensor = cropped_img_tensor.unsqueeze(0)
+    ECNN = Model.ECNN_final()
+    ECNN.load_state_dict(torch.load('./models/'+args.NN+".pt"))
+    ECNN.eval()
+    softmax = nn.Softmax(dim=1)
+    prediction = softmax(ECNN(cropped_img_tensor))
+    emotions.append(prediction.detach().numpy()[0])
 
 #now need to convert the array of emotions int to emotion values and get emoji
 
-#len(emotions) = len(cropped_names) = len(rect_coor_arr)
 original_pic = Image.open(pic_path)
 copy_og = original_pic.copy()
+
 for i in range(len(emotions)):
-    emoji = None
-    if(i == 0):
+    ind = int(np.where(emotions[i] == np.amax(emotions[i]))[0][0])
+    print("emotions",emotions)
+    print("ind", ind)
+    emoji = ""
+    if(ind == 0):
         emoji = "Angry_Emoji.jpg"
-    elif(i == 1):
+    elif(ind == 1):
         emoji = "Happy_Emoji.jpg"
-    elif(i==2):
+    elif(ind==2):
         emoji = "Neutral_Emoji.jpg"
-    elif(i==3):
+    elif(ind==3):
         emoji = "Sad_Emoji.jpg"
-    elif(i==4):
+    elif(ind==4):
         emoji = "Surprised_Emoji.jpg"
-    
     emoji_pic = Image.open("./emojis/"+emoji)
     emoji_pic = emoji_pic.resize((rect_coor_arr[i][3]-rect_coor_arr[i][0], rect_coor_arr[i][2]-rect_coor_arr[i][1]), Image.ANTIALIAS)
-    
-    pic_path = './images/'+args.image
-    
+  
     copy_og.paste(emoji_pic,  (rect_coor_arr[i][0], rect_coor_arr[i][1]))
 
-copy_og.save('./emoji_pasted/emoji_'+args.image, quality=95)
+emoji_pic = emoji_pic.resize((rect_coor_arr[0][3]-rect_coor_arr[0][0], rect_coor_arr[0][2]-rect_coor_arr[0][1]), Image.ANTIALIAS)
+
+copy_og.paste(emoji_pic,  (rect_coor_arr[0][0], rect_coor_arr[0][1]))
+
+copy_og.save('./images/emoji_pasted/emoji_'+args.image+".jpg", quality=95)
