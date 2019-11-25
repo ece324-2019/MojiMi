@@ -55,7 +55,7 @@ def getData(dataset_path):
 
 
 (angry_dataset, happy_dataset, neutral_dataset, sad_dataset, surprised_dataset, angry_imgs,
- happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('cropped_pics')  # changed
+ happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('64x64_pure_AffectNet')  # changed (cropped_pics)
 
 
 def plotPie():
@@ -223,7 +223,7 @@ The input will be format into tensors that can be shaped and batched
 def getDataLoader():
     seed = 1
     train_split, val_split, test_split, overfit_split = 0.7, 0.2, 0.1, 10
-    (_, _, _, _, _, angry_imgs, happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('cropped_pics')
+    (_, _, _, _, _, angry_imgs, happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('64x64_pure_AffectNet')
     num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs), len(surprised_imgs)]
     min_num_img = min(num_of_imgs)
     print(min_num_img)
@@ -261,7 +261,7 @@ def getDataLoader():
 
     # print(len(train_indice))
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    all_input_data = torchvision.datasets.ImageFolder(root=os.path.join(fileOrigin, 'cropped_pics'),
+    all_input_data = torchvision.datasets.ImageFolder(root=os.path.join(fileOrigin, '64x64_pure_AffectNet'),
                                                       transform=transform)
     # all_data_loader = torch.utils.data.DataLoader(all_input_data, batch_size=4, shuffle=True, num_workers=2)
 
@@ -302,16 +302,19 @@ def getDataLoader_test():
         plt.show()
         k += 1
     return
-# getDataLoader_test()
 
-# label is [0][1]
-# dataAug('cropped_pics')
+"""
+getDataLoader_test()
+label is [0][1]
+dataAug('cropped_pics')
 
-# balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data = getDataLoader()
+balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data = getDataLoader()
 
-# train_data_loader = torch.utils.data.DataLoader(train_input_data, batch_size=4, shuffle=True, num_workers=2)
+train_data_loader = torch.utils.data.DataLoader(train_input_data, batch_size=4, shuffle=True, num_workers=2)
 
-# print(train_data_loader)
-# for i,(data,label) in enumerate(overfit_input_data):
-# print(label)
-# print(i)
+print(train_data_loader)
+for i,(data,label) in enumerate(overfit_input_data):
+    print(label)
+    print(i)
+
+"""
