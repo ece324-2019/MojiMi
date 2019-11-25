@@ -16,6 +16,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from torchsummary import summary
 import numpy as np
+import Input_Dataset as input_Dataset
 
 '''
 In this file, it assumed all data will be stored in original file called cropped_pics
@@ -33,6 +34,8 @@ fileOrigin = os.getcwd()  # For running in local computer
 
 
 # fileOrigin = os.path.join(os.getcwd(), 'gdrive/My Drive/Colab Notebooks/Mojimi') # For running on colab
+dataset_used = '224x224_pure_AffectNet'
+
 def getData(dataset_path):
     dataset_path = os.path.join(fileOrigin, dataset_path)
 
@@ -40,7 +43,7 @@ def getData(dataset_path):
     happy_dataset = os.path.join(dataset_path, 'Happy')
     neutral_dataset = os.path.join(dataset_path, 'Neutral')
     sad_dataset = os.path.join(dataset_path, 'Sad')
-    surprised_dataset = os.path.join(dataset_path, 'Surprised')
+    #surprised_dataset = os.path.join(dataset_path, 'Surprised')
 
     # Plot distribution
     angry_imgs = os.listdir(angry_dataset)
@@ -48,17 +51,26 @@ def getData(dataset_path):
     print(happy_imgs)
     neutral_imgs = os.listdir(neutral_dataset)
     sad_imgs = os.listdir(sad_dataset)
-    surprised_imgs = os.listdir(surprised_dataset)
-    out = (angry_dataset, happy_dataset, neutral_dataset, sad_dataset, surprised_dataset,
-           angry_imgs, happy_imgs, neutral_imgs, sad_imgs, surprised_imgs)
+    #surprised_imgs = os.listdir(surprised_dataset)
+    #out = (angry_dataset, happy_dataset, neutral_dataset, sad_dataset, surprised_dataset,angry_imgs, happy_imgs, neutral_imgs, sad_imgs, surprised_imgs)
+    out = (angry_dataset, happy_dataset, neutral_dataset, sad_dataset, angry_imgs, happy_imgs, neutral_imgs, sad_imgs)
+
     return out
 
 
-(angry_dataset, happy_dataset, neutral_dataset, sad_dataset, surprised_dataset, angry_imgs,
- happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('64x64_pure_AffectNet')  # changed (cropped_pics)
-
+#(angry_dataset, happy_dataset, neutral_dataset, sad_dataset, surprised_dataset, angry_imgs,
+# happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData(dataset_used)  # changed
+(angry_dataset, happy_dataset, neutral_dataset, sad_dataset, angry_imgs, happy_imgs, neutral_imgs, sad_imgs) = getData(dataset_used)
 
 def plotPie():
+    num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs)]
+    print(num_of_imgs)
+    activities = ['Angry', 'Happy', 'Neutral', 'Sad']
+
+    plt.pie(num_of_imgs, labels=activities, startangle=90, autopct='%.1f%%')
+    plt.title('Number of images in each category:\n Angry: {Angry} Happy: {Happy} Neutral: {Neutral} Sad: '
+              '{Sad}'.format(Angry=num_of_imgs[0], Happy=num_of_imgs[1], Neutral=num_of_imgs[2], Sad=num_of_imgs[3]))
+    '''
     num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs), len(surprised_imgs)]
     print(num_of_imgs)
     activities = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprised']
@@ -68,6 +80,7 @@ def plotPie():
               '{Sad} Surprised:{Surprised}'.format(Angry=num_of_imgs[0], Happy=num_of_imgs[1],
                                                    Neutral=num_of_imgs[2], Sad=num_of_imgs[3],
                                                    Surprised=num_of_imgs[4]))
+    '''
 
     plt.show()
 
@@ -222,8 +235,11 @@ The input will be format into tensors that can be shaped and batched
 
 def getDataLoader():
     seed = 1
-    train_split, val_split, test_split, overfit_split = 0.7, 0.2, 0.1, 10
-    (_, _, _, _, _, angry_imgs, happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData('64x64_pure_AffectNet')
+
+    train_split, val_split, test_split, overfit_split = 0.7, 0.2, 0.1, 30
+    '''
+    (_, _, _, _, _, angry_imgs, happy_imgs, neutral_imgs, sad_imgs, surprised_imgs) = getData(dataset_used)
+
     num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs), len(surprised_imgs)]
     min_num_img = min(num_of_imgs)
     print(min_num_img)
@@ -231,11 +247,29 @@ def getDataLoader():
     # begin_idx is the index of which index will the last one belong to this category
     begin_idx = [0, num_of_imgs[0], num_of_imgs[0] + num_of_imgs[1], num_of_imgs[0] + num_of_imgs[1] + num_of_imgs[2],
                  sum(num_of_imgs) - num_of_imgs[-1]]
-    end_idx = [begin_idx[0] + min_num_img, begin_idx[1] + min_num_img + 2000, begin_idx[2] + min_num_img,
-               begin_idx[3] + min_num_img, begin_idx[4] + min_num_img]
+    #end_idx = [begin_idx[0] + min_num_img, begin_idx[1] + min_num_img + 2000, begin_idx[2] + min_num_img,
+    #           begin_idx[3] + min_num_img, begin_idx[4] + min_num_img]
+    end_idx = [begin_idx[0] + min_num_img, begin_idx[1] + min_num_img, begin_idx[2] + min_num_img,
+              begin_idx[3] + min_num_img, begin_idx[4] + min_num_img]
 
     num_of_imgs = [(end_idx[i] - begin_idx[i]) for i in range(len(end_idx))]
     activities = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprised']
+    '''
+    (_, _, _, _, angry_imgs, happy_imgs, neutral_imgs, sad_imgs) = getData(dataset_used)
+    num_of_imgs = [len(angry_imgs), len(happy_imgs), len(neutral_imgs), len(sad_imgs)]
+    min_num_img = min(num_of_imgs)
+    print(min_num_img)
+
+    # begin_idx is the index of which index will the last one belong to this category
+    begin_idx = [0, num_of_imgs[0], num_of_imgs[0] + num_of_imgs[1], sum(num_of_imgs) - num_of_imgs[-1]]
+    # end_idx = [begin_idx[0] + min_num_img, begin_idx[1] + min_num_img + 2000, begin_idx[2] + min_num_img,
+    #           begin_idx[3] + min_num_img, begin_idx[4] + min_num_img]
+    end_idx = [begin_idx[0] + min_num_img, begin_idx[1] + min_num_img, begin_idx[2] + min_num_img,
+               begin_idx[3] + min_num_img]
+
+    num_of_imgs = [(end_idx[i] - begin_idx[i]) for i in range(len(end_idx))]
+    activities = ['Angry', 'Happy', 'Neutral', 'Sad']
+
 
     '''
     # Used for plotting distribution
@@ -261,7 +295,8 @@ def getDataLoader():
 
     # print(len(train_indice))
     transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    all_input_data = torchvision.datasets.ImageFolder(root=os.path.join(fileOrigin, '64x64_pure_AffectNet'),
+
+    all_input_data = torchvision.datasets.ImageFolder(root=os.path.join(fileOrigin, dataset_used),
                                                       transform=transform)
     # all_data_loader = torch.utils.data.DataLoader(all_input_data, batch_size=4, shuffle=True, num_workers=2)
 
@@ -273,8 +308,7 @@ def getDataLoader():
     # balanced_all_data_loader = torch.utils.data.DataLoader(balanced_all_input_data, batch_size=4, shuffle=True, num_workers=2)
     return balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data
 
-
-# Aid function to plot normalized images
+# Aid function to plot normalized images havent changed yet
 def getDataLoader_test():
     seed = 1
     train_split, val_split, test_split, overfit_split = 0.7, 0.2, 0.1, 10
@@ -303,14 +337,44 @@ def getDataLoader_test():
         k += 1
     return
 
-"""
-getDataLoader_test()
-label is [0][1]
-dataAug('cropped_pics')
 
-balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data = getDataLoader()
+# label is [0][1]
+# dataAug(dataset_used)
 
-train_data_loader = torch.utils.data.DataLoader(train_input_data, batch_size=4, shuffle=True, num_workers=2)
+#balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data = getDataLoader()
+
+def get_Input_Dataset(pre_model, input_dataset):
+    i = 0
+    img_list = []
+    for i,(img, label) in enumerate(input_dataset):
+        print(i)
+        img = img.view(-1, img.shape[0], img.shape[1], img.shape[2])
+        vgg_out = pre_model(img)
+        vgg_out = vgg_out.detach().numpy()
+        img_list.append(label)
+
+        if i == 0:
+            vgg_input_arr = vgg_out
+
+        vgg_input_arr = np.concatenate((vgg_input_arr, vgg_out))
+        i = 1
+
+    vgg_labels = np.asarray(img_list)
+    print(vgg_input_arr.shape, vgg_labels.shape)
+    input_data = input_Dataset.vggDataset(vgg_input_arr, vgg_labels)
+
+    return input_data
+
+'''
+from torchvision import datasets, models, transforms
+pre_model = models.vgg16(pretrained=True)
+new_overfit_input = get_Input_Dataset(pre_model, overfit_input_data)
+new_overfit_data_loader = torch.utils.data.DataLoader(new_overfit_input, batch_size=4, shuffle=True, num_workers=2)
+for img, label in new_overfit_data_loader:
+    print(img.shape, label)
+# train_data_loader = torch.utils.data.DataLoader(train_input_data, batch_size=4, shuffle=True, num_workers=2)
+'''
+
 
 print(train_data_loader)
 for i,(data,label) in enumerate(overfit_input_data):
