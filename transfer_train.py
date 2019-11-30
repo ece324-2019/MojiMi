@@ -5,10 +5,9 @@ import torch.nn as nn
 import torch.optim as optim
 import time
 import matplotlib.pyplot as plt
-import torch.nn.functional as F
 import os
 
-import InputManager as inputManager
+import InputManager as inputManager_5cls
 import CNNModel as Model
 import Models as Model_baseline
 
@@ -39,11 +38,8 @@ def evaluate(model, batch_size, dataset, criterion):
 
     for i, (img, label) in enumerate(data_loader):
         out = model(img)           # Compute prediction
-
         # Compute loss
         total_loss += criterion(out, label).item()
-        # loss = criterion(out, label)
-        # total_loss += loss.item()
 
         # Compute accuracy before changing label to one hot encoding to use MSELoss
         pred = out.max(1)[1]        # Get the max prediction of all 10 probabilities and get the corresponding index
@@ -116,20 +112,14 @@ def train(model, train_dataset, val_dataset, lr, batch_size, num_epoch, save):
     plt.legend(loc='best')
     plt.show()
     return
-import InputManager_5cls as inputManager_5cls
+
 Balanced_all_dataset, train_dataset, val_dataset, test_dataset, overfit_dataset = inputManager_5cls.getDataLoader()
+
+# Transfer learninf for training VGG16 from Pytorch
 # Load pretrain model and set to not training
-#model = models.resnet34(pretrained=True)
 model = models.vgg16(pretrained=True)
 for param in model.parameters():
     param.requires_grad = False
-    #print(param)
-
-''' # this is for resnet
-num_ftrs = model.fc.in_features
-#print(num_ftrs)
-model.fc = nn.Linear(num_ftrs, 5)
-'''
 
 num_ftrs = model.classifier[6].in_features
 model.classifier[6] = nn.Sequential(
@@ -145,7 +135,63 @@ print(f'{total_trainable_params:,} training parameters.')
 #train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 64, num_epoch= 25, save = 'vgg16_overfit_0.pt')
 #train(model, train_dataset, val_dataset, lr = 0.001, batch_size = 64, num_epoch= 2, save = 'ECNN_train_0.pt')
 
-# Trying out Keras
+
+
+
+# Try Pytorch Inputting the 1000 classification as input instead of modifying last layer
+# Load pretrain model and set to not training
+pre_model = models.vgg16(pretrained=True)
+for param in pre_model.parameters():
+    param.requires_grad = False
+
+num_ftrs = pre_model.classifier[6].out_features # 1000
+print(num_ftrs)
+model = Model.ENN_0_5cls(num_ftrs)
+
+#overfit_dataset = inputManager_5cls.get_Input_Dataset(pre_model, overfit_dataset)
+#torch.save(overfit_dataset, os.path.join(os.getcwd(), 'cropped_pics_overfit_dataset.pt'))
+overfit_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_overfit_dataset.pt'))
+
+#train_dataset = inputManager_5cls.get_Input_Dataset(pre_model, train_dataset)
+#torch.save(train_dataset, os.path.join(os.getcwd(), 'cropped_pics_train_dataset.pt'))
+train_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_train_dataset.pt'))
+
+#val_dataset = inputManager_5cls.get_Input_Dataset(pre_model, val_dataset)
+#torch.save(val_dataset, os.path.join(os.getcwd(), 'cropped_pics_val_dataset.pt'))
+##val_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_val_dataset.pt'))
+
+#test_dataset = inputManager_5cls.get_Input_Dataset(pre_model, test_dataset)
+#torch.save(test_dataset, os.path.join(os.getcwd(), 'cropped_pics_test_dataset.pt'))
+test_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_test_dataset.pt'))
+
+#overfit_data_loader = torch.utils.data.DataLoader(overfit_dataset, batch_size=4, shuffle=True, num_workers=2)
+#train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 10, num_epoch=60, save = 'cropped_ECNN_overfit_5cls_64_1.pt')
+#train(model, train_dataset, val_dataset, lr = 0.001, batch_size = 300, num_epoch=40, save = 'ECNN_train_5cls_64_1.pt')
+
+
+model_final = Model.ECNN_final()
+model_final.load_state_dict(torch.load('ECNN.pt'))
+model_final.eval()
+'''
+model_ECNN.eval()
+acc = getAcc(model_ECNN, batch_size, test_dataset) # dataset will be the testset
+'''
+
+# Plotting Confusion Matrix
+from sklearn.metrics import confusion_matrix
+#val_data_loader = torch.utils.data.DataLoader(val_dataset, batch_size=len(val_dataset), shuffle=True)
+test_data_loader = torch.utils.data.DataLoader(val_dataset, batch_size=len(test_dataset), shuffle=True)
+for data, label in test_data_loader:
+    out = model_final(data)
+    pred = out.max(1)[1]  # Get the max prediction of all 10 probabilities and get the corresponding index
+    print(label)
+    label_int = label
+    #label_int = label.max(1)[1]
+# angry, hapoy, neurtal, sad, surprise
+print(confusion_matrix(pred, label_int, labels=[0,1,2,3,4]))
+
+
+# Keras VGG16
 from keras.applications.vgg16 import VGG16
 pre_model = VGG16(weights = 'imagenet', include_top = False)
 
@@ -170,17 +216,3 @@ val_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_val_dataset_ker
 test_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_test_dataset_keras.pt'))
 
 train(model, train_dataset, val_dataset, lr = 0.0001, batch_size = 300, num_epoch=100, save ='keras_train.pt')
-
-
-#overfit_data_loader = torch.utils.data.DataLoader(overfit_dataset, batch_size=4, shuffle=True, num_workers=2)
-#train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 10, num_epoch=60, save = 'cropped_ECNN_overfit_5cls_64_1.pt')
-#train(model, train_dataset, val_dataset, lr = 0.001, batch_size = 300, num_epoch=40, save = 'ECNN_train_5cls_64_1.pt')
-
-#ecc_pt1 is the parameters for lr = 0.005, batch = 1000, num of epoch = 40
-#train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 64, num_epoch= 25, save = 'vgg16_overfit_0.pt')
-#train(model, train_dataset, val_dataset, lr = 0.001, batch_size = 64, num_epoch= 2, save = 'ECNN_train_0.pt')
-
-#model_1 = Model_baseline.Baseline_64()
-#train(model_1, train_dataset, val_dataset, lr = 0.001, batch_size = 9000, num_epoch= 70, save ='baseline_3.pt')
-
-
