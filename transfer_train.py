@@ -1,3 +1,5 @@
+from torchvision import datasets, models, transforms
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -18,6 +20,8 @@ def getAcc(model, batch_size, dataset):
 
     for data, label in data_loader:
         out = model(data)           # Compute prediction
+        sig = nn.Sigmoid()          # Added
+        out = sig(out).squeeze(1)   # Added
 
         # Compute accuracy before changing label to one hot encoding to use MSELoss
         pred = out.max(1)[1]        # Get the max prediction of all 10 probabilities and get the corresponding index
@@ -65,7 +69,7 @@ def train(model, train_dataset, val_dataset, lr, batch_size, num_epoch, save):
         print('epoch:', epoch)
         tot_loss = 0
         for i, (img, label) in enumerate(train_data_loader):
-        
+            #print(i)
             optimizer.zero_grad()                           # Clean the previous step
             out = model(img)                               # Make prediction with model
 
@@ -112,13 +116,71 @@ def train(model, train_dataset, val_dataset, lr, batch_size, num_epoch, save):
     plt.legend(loc='best')
     plt.show()
     return
+import InputManager_5cls as inputManager_5cls
+Balanced_all_dataset, train_dataset, val_dataset, test_dataset, overfit_dataset = inputManager_5cls.getDataLoader()
+# Load pretrain model and set to not training
+#model = models.resnet34(pretrained=True)
+model = models.vgg16(pretrained=True)
+for param in model.parameters():
+    param.requires_grad = False
+    #print(param)
 
-Balanced_all_dataset, train_dataset, val_dataset, test_dataset, overfit_dataset = inputManager.getDataLoader()
-model = Model.ECNN()
+''' # this is for resnet
+num_ftrs = model.fc.in_features
+#print(num_ftrs)
+model.fc = nn.Linear(num_ftrs, 5)
+'''
+
+num_ftrs = model.classifier[6].in_features
+model.classifier[6] = nn.Sequential(
+                      nn.Linear(num_ftrs, 5),
+                      )
+# Find total parameters and trainable parameters
+total_params = sum(p.numel() for p in model.parameters())
+print(f'{total_params:,} total parameters.')
+total_trainable_params = sum(
+    p.numel() for p in model.parameters() if p.requires_grad)
+print(f'{total_trainable_params:,} training parameters.')
+# This method takes rediculously long
+#train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 64, num_epoch= 25, save = 'vgg16_overfit_0.pt')
+#train(model, train_dataset, val_dataset, lr = 0.001, batch_size = 64, num_epoch= 2, save = 'ECNN_train_0.pt')
+
+# Trying out Keras
+from keras.applications.vgg16 import VGG16
+pre_model = VGG16(weights = 'imagenet', include_top = False)
+
+model = Model.keras_tl()
+
+#overfit_dataset = inputManager_5cls.get_Input_Dataset_keras(pre_model, overfit_dataset)
+#torch.save(overfit_dataset, os.path.join(os.getcwd(), 'cropped_pics_overfit_dataset_keras.pt'))
+overfit_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_overfit_dataset_keras.pt'))
+
+#train(model, overfit_dataset, overfit_dataset, lr = 0.0001, batch_size = 10, num_epoch=50, save ='keras_overfit.pt')
+
+#train_dataset = inputManager_5cls.get_Input_Dataset_keras(pre_model, train_dataset)
+#torch.save(train_dataset, os.path.join(os.getcwd(), 'cropped_pics_train_dataset_keras.pt'))
+train_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_train_dataset_keras.pt'))
+
+#val_dataset = inputManager_5cls.get_Input_Dataset_keras(pre_model, val_dataset)
+#torch.save(val_dataset, os.path.join(os.getcwd(), 'cropped_pics_val_dataset_keras.pt'))
+val_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_val_dataset_keras.pt'))
+
+#test_dataset = inputManager_5cls.get_Input_Dataset_keras(pre_model, test_dataset)
+#torch.save(test_dataset, os.path.join(os.getcwd(), 'cropped_pics_test_dataset_keras.pt'))
+test_dataset = torch.load(os.path.join(os.getcwd(), 'cropped_pics_test_dataset_keras.pt'))
+
+train(model, train_dataset, val_dataset, lr = 0.0001, batch_size = 300, num_epoch=100, save ='keras_train.pt')
+
+
+#overfit_data_loader = torch.utils.data.DataLoader(overfit_dataset, batch_size=4, shuffle=True, num_workers=2)
+#train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 10, num_epoch=60, save = 'cropped_ECNN_overfit_5cls_64_1.pt')
+#train(model, train_dataset, val_dataset, lr = 0.001, batch_size = 300, num_epoch=40, save = 'ECNN_train_5cls_64_1.pt')
+
 #ecc_pt1 is the parameters for lr = 0.005, batch = 1000, num of epoch = 40
-#train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 300, num_epoch= 20, save = 'ECNN_0.pt')
+#train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 64, num_epoch= 25, save = 'vgg16_overfit_0.pt')
+#train(model, train_dataset, val_dataset, lr = 0.001, batch_size = 64, num_epoch= 2, save = 'ECNN_train_0.pt')
 
-model_1 = Model_baseline.Baseline_64()
+#model_1 = Model_baseline.Baseline_64()
 #train(model_1, train_dataset, val_dataset, lr = 0.001, batch_size = 9000, num_epoch= 70, save ='baseline_3.pt')
-#train(model, overfit_dataset, overfit_dataset, lr = 0.0001, batch_size = 10, num_epoch=30)
+
 

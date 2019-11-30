@@ -34,7 +34,7 @@ fileOrigin = os.getcwd()  # For running in local computer
 
 
 # fileOrigin = os.path.join(os.getcwd(), 'gdrive/My Drive/Colab Notebooks/Mojimi') # For running on colab
-dataset_used = '224x224_pure_AffectNet'
+dataset_used = 'ori_cropped_pics'
 
 def getData(dataset_path):
     dataset_path = os.path.join(fileOrigin, dataset_path)
@@ -113,6 +113,7 @@ def horizontalFlip(rootpath, emo, dataset):
         im.save('{root}/{emo}/{filename}_mirror{ext}'.format(root = os.path.join(os.getcwd(), 'EmoImg'), emo=emo,
                                                              filename = filename, ext=ext))
         '''
+        im = ImageOps.mirror(im)
         im.save('{root}/{filename}_mirror{ext}'.format(root=rootpath, filename=filename, ext=ext))
         # im.show()
 
@@ -171,7 +172,7 @@ def contrastBrightness(rootpath, emo, dataset, alpha, beta):
 
         # Convert Pil to numpy arrary
         im = Image.open(img)  # --> original image
-        im.show()
+        #im.show()
 
         arr = np.array(im)
         # https: // docs.opencv.org / 3.4 / d3 / dc1 / tutorial_basic_linear_transform.html
@@ -182,7 +183,7 @@ def contrastBrightness(rootpath, emo, dataset, alpha, beta):
                     new_arr[w, h, c] = np.clip(arr[w, h, c] * alpha + beta, 0, 225)
 
         im = Image.fromarray(new_arr.astype('uint8'))
-        im.show()
+        #im.show()
 
         '''
         if not os.path.exists('{root}'.format(root = os.path.join(os.getcwd(), 'EmoImg'))):
@@ -194,7 +195,7 @@ def contrastBrightness(rootpath, emo, dataset, alpha, beta):
                                                              filename = filename, ext=ext))
         '''
         im.save('{root}/{filename}_contrast{ext}'.format(root=rootpath, filename=filename, ext=ext))
-        im.show()
+       # im.show()
 
 
 def dataAug(rootFilePath):
@@ -207,23 +208,31 @@ def dataAug(rootFilePath):
         os.mkdir(copy_imgFolder_path)
         copy_tree('{root}/{imgDir}'.format(root=fileOrigin, imgDir=rootFilePath), copy_imgFolder_path)
 
-    # horizontalFlip('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
-    # horizontalFlip('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
-    # horizontalFlip('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset)
-    # horizontalFlip('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset)
+    horizontalFlip('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
+    randomNoise('{root}/Sad'.format(root=rootFilePath), 'Sad', sad_dataset)
+    alpha, beta = 1.2, 0.5
+    contrastBrightness('{root}/Sad'.format(root=rootFilePath), 'Sad', sad_dataset, alpha, beta)
 
-    # randomNoise('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
-    # randomNoise('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
-    # randomNoise('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset)
-    # randomNoise('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset)
+    '''
+    horizontalFlip('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
+    horizontalFlip('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
+    horizontalFlip('{root}/Neutral'.format(root = rootFilePath), 'Neutral', neutral_dataset)
+    horizontalFlip('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset)
+
+    randomNoise('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
+    randomNoise('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
+    randomNoise('{root}/Neutral'.format(root = rootFilePath), 'Neutral', neutral_dataset)
+    randomNoise('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset)
 
     alpha, beta = 1.2, 0.5
 
-    # contrastBrightness('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset,alpha, beta)
-    # contrastBrightness('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset, alpha, beta)
-    # contrastBrightness('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset, alpha, beta)
-    # contrastBrightness('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset,  alpha, beta)
-
+    contrastBrightness('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset,alpha, beta)
+    contrastBrightness('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset, alpha, beta)
+    contrastBrightness('{root}/Neutral'.format(root = rootFilePath), 'Neutral', neutral_dataset, alpha, beta)
+    contrastBrightness('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset,  alpha, beta)
+    '''
+    
+#dataAug(dataset_used)
 
 '''
 This file is mainly used to create suitable inputs based on dataset. 
@@ -308,6 +317,7 @@ def getDataLoader():
     # balanced_all_data_loader = torch.utils.data.DataLoader(balanced_all_input_data, batch_size=4, shuffle=True, num_workers=2)
     return balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data
 
+
 # Aid function to plot normalized images havent changed yet
 def getDataLoader_test():
     seed = 1
@@ -325,7 +335,9 @@ def getDataLoader_test():
     k = 0
     for images, labels in all_data_loader:
         # since batch_size = 1, there is only 1 image in `images`
+
         image = images[0]
+        print(image)
         # place the colour channel at the end, instead of at the beginning
         img = np.transpose(image, [1, 2, 0])
         # normalize pixel intensity values to [0, 1]
@@ -336,10 +348,8 @@ def getDataLoader_test():
         plt.show()
         k += 1
     return
-
-
 # label is [0][1]
-# dataAug(dataset_used)
+
 
 #balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data = getDataLoader()
 
@@ -374,11 +384,10 @@ for img, label in new_overfit_data_loader:
     print(img.shape, label)
 # train_data_loader = torch.utils.data.DataLoader(train_input_data, batch_size=4, shuffle=True, num_workers=2)
 '''
-
+'''
 
 print(train_data_loader)
 for i,(data,label) in enumerate(overfit_input_data):
     print(label)
     print(i)
-
-"""
+'''

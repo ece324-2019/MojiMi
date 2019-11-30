@@ -215,7 +215,7 @@ def processKDEF_ext():
 
 
 
-processKDEF_ext()
+#processKDEF_ext()
 
 def processOriginalPic_ext():
     headers = {
@@ -240,4 +240,28 @@ def processOriginalPic_ext():
 
 #csvFile.close()
 
+def process224_ext():
+    headers = {
+        'Content-Type':'application/octet-stream',
+        'Ocp-Apim-Subscription-Key': subscription_key
+    }
+
+    i = 0
+    for (root,dirs,files) in os.walk('224x224_pure_AffectNet'):
+        print(root)
+        for file in files:
+            #if file[4:6] == 'HA' or file[4:6] == 'NE':
+            #    continue
+
+            imgpath = os.path.join(root, file)
+            img_data = open(imgpath, 'rb')
+            img = Image.open(imgpath)
+            img.show()
+            response = requests.post(face_api_url, params = params, headers=headers, data = img_data)
+            face_info = response.json()
+            getCropImgAndLabel(face_info, img, 'KDEF_{i}'.format(i=i))
+            i += 1
+            break
+        break
+process224_ext()
 print("finished running")
