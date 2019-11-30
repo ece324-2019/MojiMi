@@ -30,25 +30,11 @@ params = {
     'returnFaceLandmarks': 'false',
     'returnFaceAttributes' : 'emotion'
 }
-print("reached")
-
-#used to write the header
-#with open('labels.csv', 'w') as csvFile_header:
-#    writer = csv.writer(csvFile_header)
-#    writer.writerow(['id', 'label'])
-#csvFile_header.close()
-
-#dataset_name =
-
-# For the CK extended image set
-# 0 = neutral, 1 = anger, 2 = contempt, 3 = disgust,
-# 4 = fear, 5 = happy, 6 = sadness and 7 = surprise
 
 # For the flickr HQ dataseet
 def propcessFlickr():
     with open('ffhq-dataset-v2.json') as json_file:
         pic_infos = json.load(json_file)
-
 
     pic_url = pic_infos["0"]["image"]["file_url"]
 
@@ -64,10 +50,8 @@ def propcessFlickr():
                     continue
                 cropped_img = img.crop(rect_coor)
 
-                #cropped_img=cropped_img.resize((64, 64), Image.ANTIALIAS)
-                cropped_img=cropped_img.resize((224, 224), Image.ANTIALIAS)
+                cropped_img=cropped_img.resize((64, 64), Image.ANTIALIAS)
 
-                
                 emotion_pred = [val['faceAttributes']["emotion"]['anger'],
                     val['faceAttributes']["emotion"]['happiness'],
                     val['faceAttributes']["emotion"]['neutral'],
@@ -80,18 +64,10 @@ def propcessFlickr():
                 for e_i, emotion_val in enumerate(emotion_pred):
                     if(emotion_val > emotion_pred[max_val]):
                         max_val = e_i
-                """
-                label = {
-                    'id': cropped_img_name,
-                    'label': max_val
-                }  
-                """          
-
                 if(max_val == 0):
                     emotion="Angry"
                 elif(max_val == 1):
                     emotion="Happy"  
-                        
                 elif(max_val == 2):
                     emotion="Neutral"
                 elif(max_val == 3):
@@ -100,13 +76,7 @@ def propcessFlickr():
                     emotion="Surprised"
 
                 cropped_img_name = str(i) + "_" + str(j) + "_" + emotion
-                #save_img = cropped_img.save("./cropped_pics/"+emotion+"/"+cropped_img_name+".jpg")
-                save_img = cropped_img.save("./cropped_pics_224/"+emotion+"/"+cropped_img_name+".jpg")
-
-
-                #with open('labels.csv', 'a') as csvFile:   
-                #    wr = csv.DictWriter(csvFile, fieldnames=('id', 'label'), lineterminator = '\n')
-                #    wr.writerow(label)
+                save_img = cropped_img.save("./cropped_pics/"+emotion+"/"+cropped_img_name+".jpg")
 
                 response = requests.post(face_api_url, params=params, headers=headers, json={"url": pic_url})
 
@@ -119,8 +89,6 @@ def propcessFlickr():
         except Exception as e:
             print("except ", e)
             continue
-
-    
         print(i)
 
 def getCropImgAndLabel(face_info, img,i):
@@ -135,8 +103,6 @@ def getCropImgAndLabel(face_info, img,i):
         cropped_img_224 =cropped_img.resize((224, 224), Image.ANTIALIAS)
         plt.figure(i)
 
-        #cropped_img_64.show(title = 'Cropped and resized Image_{} after passing into Microsoft Azure'.format(i))
-
         emotion_pred = [val['faceAttributes']["emotion"]['anger'],
                         val['faceAttributes']["emotion"]['happiness'],
                         val['faceAttributes']["emotion"]['neutral'],
@@ -149,13 +115,6 @@ def getCropImgAndLabel(face_info, img,i):
         for e_i, emotion_val in enumerate(emotion_pred):
             if (emotion_val > emotion_pred[max_val]):
                 max_val = e_i
-        """
-        label = {
-            'id': cropped_img_name,
-            'label': max_val
-        }  
-        """
-        print(j)
         if (max_val == 0):
             emotion = "Angry"
         elif (max_val == 1):
@@ -167,21 +126,15 @@ def getCropImgAndLabel(face_info, img,i):
             emotion = "Sad"
         elif (max_val == 4):
             emotion = "Surprised"
-
         cropped_img_64_name = str(i) + "_" + str(j) + "_" + emotion
         cropped_img_224_name = str(i) + "_" + str(j) + "_" + emotion
-        print(j)
-        print(cropped_img_64_name)
+
 
         # Chnaging folder so knows which one is processed where
         save_img = cropped_img_64.save(os.path.join(os.getcwd(), "cropped_pics_kh_64/") + emotion + "/" + cropped_img_64_name + ".jpg")
-        save_img = cropped_img_224.save(os.path.join(os.getcwd(), "cropped_pics_kh_224/") + emotion + "/" + cropped_img_224_name + ".jpg")
+        #save_img = cropped_img_224.save(os.path.join(os.getcwd(), "cropped_pics_kh_224/") + emotion + "/" + cropped_img_224_name + ".jpg")
         im = Image.open(os.path.join(os.getcwd(), "cropped_pics_kh_64/") + emotion + "/" + cropped_img_64_name + ".jpg")
         im.show()
-
-        # with open('labels.csv', 'a') as csvFile:
-        #    wr = csv.DictWriter(csvFile, fieldnames=('id', 'label'), lineterminator = '\n')
-        #    wr.writerow(label)
 
 def processKDEF_ext():
     headers = {
@@ -206,7 +159,6 @@ def processKDEF_ext():
             img.show()
             response = requests.post(face_api_url, params = params, headers=headers, data = img_data)
             face_info = response.json()
-            print(face_info)
             getCropImgAndLabel(face_info, img, 'KDEF_{i}'.format(i=i))
             #i += 1
             break
@@ -237,7 +189,5 @@ def processOriginalPic_ext():
             face_info = response.json()
             getCropImgAndLabel(face_info, img, 'KDEF_{i}'.format(i=i))
             i += 1
-
-#csvFile.close()
 
 print("finished running")
