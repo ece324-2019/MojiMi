@@ -34,8 +34,8 @@ fileOrigin = os.getcwd()  # For running in local computer
 
 
 # fileOrigin = os.path.join(os.getcwd(), 'gdrive/My Drive/Colab Notebooks/Mojimi') # For running on colab
-dataset_used = '64x64_pure_AffectNet_4cls'
-
+#dataset_used = 'ori_cropped_pics'
+dataset_used = 'cropped_pics_copy'
 def getData(dataset_path):
     dataset_path = os.path.join(fileOrigin, dataset_path)
 
@@ -81,9 +81,10 @@ plotPie()  # [7612, 10633, 7412, 7736, 7772]
 def horizontalFlip(rootpath, emo, dataset):
     i = 0
     for img in os.listdir(dataset):
-        if i == 0:
-            i += 1
+
+        if img == '.DS_Store':
             continue
+
         filename, ext = os.path.splitext(img)
 
         rootpath = os.path.join(fileOrigin, rootpath)
@@ -103,6 +104,7 @@ def horizontalFlip(rootpath, emo, dataset):
         im.save('{root}/{emo}/{filename}_mirror{ext}'.format(root = os.path.join(os.getcwd(), 'EmoImg'), emo=emo,
                                                              filename = filename, ext=ext))
         '''
+        im = ImageOps.mirror(im)
         im.save('{root}/{filename}_mirror{ext}'.format(root=rootpath, filename=filename, ext=ext))
         # im.show()
 
@@ -120,8 +122,7 @@ im = Image.fromarray(arr)
 def randomNoise(rootpath, emo, dataset):
     i = 0
     for img in os.listdir(dataset):
-        if i == 0:
-            i += 1
+        if img == '.DS_Store':
             continue
         filename, ext = os.path.splitext(img)
 
@@ -150,8 +151,7 @@ def randomNoise(rootpath, emo, dataset):
 def contrastBrightness(rootpath, emo, dataset, alpha, beta):
     i = 0
     for img in os.listdir(dataset):
-        if i == 0:
-            i += 1
+        if img == '.DS_Store':
             continue
         i += 1
         filename, ext = os.path.splitext(img)
@@ -161,7 +161,7 @@ def contrastBrightness(rootpath, emo, dataset, alpha, beta):
 
         # Convert Pil to numpy arrary
         im = Image.open(img)  # --> original image
-        im.show()
+        #im.show()
 
         arr = np.array(im)
         # https: // docs.opencv.org / 3.4 / d3 / dc1 / tutorial_basic_linear_transform.html
@@ -172,7 +172,7 @@ def contrastBrightness(rootpath, emo, dataset, alpha, beta):
                     new_arr[w, h, c] = np.clip(arr[w, h, c] * alpha + beta, 0, 225)
 
         im = Image.fromarray(new_arr.astype('uint8'))
-        im.show()
+        #im.show()
 
         '''
         if not os.path.exists('{root}'.format(root = os.path.join(os.getcwd(), 'EmoImg'))):
@@ -184,7 +184,7 @@ def contrastBrightness(rootpath, emo, dataset, alpha, beta):
                                                              filename = filename, ext=ext))
         '''
         im.save('{root}/{filename}_contrast{ext}'.format(root=rootpath, filename=filename, ext=ext))
-        im.show()
+        #im.show()
 
 
 def dataAug(rootFilePath):
@@ -197,21 +197,21 @@ def dataAug(rootFilePath):
         os.mkdir(copy_imgFolder_path)
         copy_tree('{root}/{imgDir}'.format(root=fileOrigin, imgDir=rootFilePath), copy_imgFolder_path)
 
-    # horizontalFlip('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
-    # horizontalFlip('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
-    # horizontalFlip('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset)
+    horizontalFlip('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
+    horizontalFlip('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
+    horizontalFlip('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset)
     # horizontalFlip('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset)
 
-    # randomNoise('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
-    # randomNoise('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
-    # randomNoise('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset)
+    randomNoise('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset)
+    randomNoise('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset)
+    randomNoise('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset)
     # randomNoise('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset)
 
     alpha, beta = 1.2, 0.5
 
-    # contrastBrightness('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset,alpha, beta)
-    # contrastBrightness('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset, alpha, beta)
-    # contrastBrightness('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset, alpha, beta)
+    contrastBrightness('{root}/Angry'.format(root = rootFilePath), 'Angry', angry_dataset,alpha, beta)
+    contrastBrightness('{root}/Sad'.format(root = rootFilePath), 'Sad', sad_dataset, alpha, beta)
+    contrastBrightness('{root}/Surprised'.format(root = rootFilePath), 'Surprised', surprised_dataset, alpha, beta)
     # contrastBrightness('{root}/Happy'.format(root=rootFilePath), 'Happy', happy_dataset,  alpha, beta)
 
 
@@ -242,8 +242,6 @@ def getDataLoader():
 
     num_of_imgs = [(end_idx[i] - begin_idx[i]) for i in range(len(end_idx))]
     activities = ['Angry', 'Happy', 'Neutral', 'Sad', 'Surprised']
-
-
 
     '''
     # Used for plotting distribution
@@ -313,7 +311,7 @@ def getDataLoader_test():
 # getDataLoader_test()
 
 # label is [0][1]
-# dataAug(dataset_used)
+#dataAug(dataset_used)
 
 #balanced_all_input_data, train_input_data, val_input_data, test_input_data, overfit_input_data = getDataLoader()
 
@@ -323,7 +321,7 @@ def get_Input_Dataset(pre_model, input_dataset):
     for i,(img, label) in enumerate(input_dataset):
         print(i)
         img = img.view(-1, img.shape[0], img.shape[1], img.shape[2])
-        vgg_out = pre_model(img)
+        vgg_out = pre_model.predict(img)
         vgg_out = vgg_out.detach().numpy()
         img_list.append(label)
 
@@ -339,6 +337,30 @@ def get_Input_Dataset(pre_model, input_dataset):
 
     return input_data
 
+def get_Input_Dataset_keras(pre_model, input_dataset):
+    i = 0
+    img_list = []
+    for i,(img, label) in enumerate(input_dataset):
+        print(i)
+        img = img.view(-1, img.shape[1], img.shape[2], img.shape[0])
+        img = img.detach().numpy()
+        #print(img.shape)
+        keras_vgg_out = pre_model.predict(img)
+        #print(keras_vgg_out.shape)
+        #vgg_out = vgg_out.detach().numpy()
+        img_list.append(label)
+
+        if i == 0:
+            vgg_input_arr = keras_vgg_out
+
+        vgg_input_arr = np.concatenate((vgg_input_arr, keras_vgg_out))
+        i = 1
+
+    vgg_labels = np.asarray(img_list)
+    print(vgg_input_arr.shape, vgg_labels.shape)
+    input_data = input_Dataset.vggDataset(vgg_input_arr, vgg_labels)
+
+    return input_data
 '''
 from torchvision import datasets, models, transforms
 pre_model = models.vgg16(pretrained=True)

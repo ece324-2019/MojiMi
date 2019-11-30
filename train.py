@@ -65,6 +65,7 @@ def train(model, train_dataset, val_dataset, lr, batch_size, num_epoch, save):
         print('epoch:', epoch)
         tot_loss = 0
         for i, (img, label) in enumerate(train_data_loader):
+        
             optimizer.zero_grad()                           # Clean the previous step
             out = model(img)                               # Make prediction with model
 
