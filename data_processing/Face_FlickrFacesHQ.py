@@ -167,7 +167,7 @@ def processKDEF_ext():
 
 
 
-processKDEF_ext()
+#processKDEF_ext()
 
 def processOriginalPic_ext():
     headers = {
@@ -189,5 +189,4 @@ def processOriginalPic_ext():
             face_info = response.json()
             getCropImgAndLabel(face_info, img, 'KDEF_{i}'.format(i=i))
             i += 1
-
 print("finished running")
