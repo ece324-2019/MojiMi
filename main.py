@@ -2,7 +2,6 @@
 
 #config Azure API
 import data_processing.FaceAPIConfig as config
-import CNNModel_e as Model
 import argparse
 from PIL import Image
 import json

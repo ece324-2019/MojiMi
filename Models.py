@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class Baseline_64(nn.Module):
+class Baseline(nn.Module):
     def __init__(self):
-        super(Baseline_64, self).__init__()
+        super(Baseline, self).__init__()
         self.fc1 = nn.Linear(3*64*64, 3*16*16)
         self.fc2 = nn.Linear(3*16*16, 5)
     def forward(self, x):

@@ -38,8 +38,6 @@ def evaluate(model, batch_size, dataset, criterion):
 
         # Compute loss
         total_loss += criterion(out, label).item()
-        # loss = criterion(out, label)
-        # total_loss += loss.item()
 
         # Compute accuracy before changing label to one hot encoding to use MSELoss
         pred = out.max(1)[1]        # Get the max prediction of all 10 probabilities and get the corresponding index
@@ -53,7 +51,6 @@ def evaluate(model, batch_size, dataset, criterion):
 
 def train(model, train_dataset, val_dataset, lr, batch_size, num_epoch, save):
     torch.manual_seed(0)
-    #optimizer = optim.SGD(model.parameters(), lr=lr)
     optimizer = optim.Adam(model.parameters(), lr)
     criterion = nn.CrossEntropyLoss()
 
@@ -87,7 +84,6 @@ def train(model, train_dataset, val_dataset, lr, batch_size, num_epoch, save):
         val_losses.append(val_loss)
         print('Val_acc:', val_acc)
 
-    #torch.save(model.state_dict(), os.path.join(os.getcwd(), 'baseline_1.pt'))
     torch.save(model.state_dict(), os.path.join(os.getcwd(), save))
     end_time = time.time()
     time_used = end_time - start_time
@@ -114,10 +110,10 @@ def train(model, train_dataset, val_dataset, lr, batch_size, num_epoch, save):
 
 Balanced_all_dataset, train_dataset, val_dataset, test_dataset, overfit_dataset = inputManager.getDataLoader()
 model = Model.ECNN()
-#ecc_pt1 is the parameters for lr = 0.005, batch = 1000, num of epoch = 40
+model_1 = Model_baseline.Baseline()
+
+#ecc_pt1 is the parameters for lr = 0.005, batch = 1000, num of epoch = 40, for file name "ECNN_0.pt"
+train(model, train_dataset, val_dataset, lr = 0.001, batch_size = 9000, num_epoch= 70, save ='baseline_3.pt')
 #train(model, overfit_dataset, overfit_dataset, lr = 0.001, batch_size = 300, num_epoch= 20, save = 'ECNN_0.pt')
 
-model_1 = Model_baseline.Baseline_64()
-#train(model_1, train_dataset, val_dataset, lr = 0.001, batch_size = 9000, num_epoch= 70, save ='baseline_3.pt')
-#train(model, overfit_dataset, overfit_dataset, lr = 0.0001, batch_size = 10, num_epoch=30)
 
